@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>ISA CONTROL V3</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>ISA MISSION CONTROL</h1>
+
+<input id="email" placeholder="email">
+<button onclick="login()">LOGIN</button>
+
+<h3 id="role">ROLE: ---</h3>
+<h2 id="countdown">---</h2>
+<h2 id="status">---</h2>
+
+<div id="telemetry"></div>
+
+<pre id="logs"></pre>
+
+<div id="directorPanel" style="display:none;">
+<button onclick="toggleLaunch()">TOGGLE LAUNCH</button>
+<button onclick="abortLaunch()">ABORT</button>
+</div>
+
+<!-- animation hook -->
+<div id="launchScene"></div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
