@@ -1,0 +1,18 @@
+{
+  "name": "isa-site",
+  "version": "1.0.0",
+  "description": "ISA Mission Control System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"No tests defined\" && exit 0"
+  },
+  "keywords": ["isa", "mission-control", "websocket", "simulation"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.20.0"
+  }
+}
