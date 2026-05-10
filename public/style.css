@@ -1,15 +1,119 @@
-body{
-    background:#000;
-    color:#00d9ff;
-    font-family:monospace;
-    padding:20px;
+body {
+    background: radial-gradient(circle at top, #050b10, #000000 70%);
+    color: #00e5ff;
+    font-family: 'Courier New', monospace;
+    padding: 20px;
+    margin: 0;
 }
 
-#telemetry{
-    margin-top:10px;
+/* HEADER */
+h1 {
+    color: #00f0ff;
+    text-shadow: 0 0 10px #00f0ff;
+    margin-bottom: 10px;
 }
 
-button{
-    margin:5px;
-    padding:10px;
+/* PANELS */
+.panel {
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 10px;
+    background: rgba(0, 20, 30, 0.4);
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.1);
+}
+
+/* INPUTS */
+input {
+    padding: 10px;
+    background: #001018;
+    border: 1px solid #00e5ff;
+    color: #00e5ff;
+    outline: none;
+}
+
+/* BUTTONS */
+button {
+    margin: 5px;
+    padding: 10px 15px;
+    background: #001a22;
+    border: 1px solid #00e5ff;
+    color: #00e5ff;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #00e5ff;
+    color: #000;
+    box-shadow: 0 0 10px #00e5ff;
+}
+
+/* IMPORTANT BUTTONS */
+.btn.danger {
+    border-color: #ff004c;
+    color: #ff004c;
+}
+
+.btn.danger:hover {
+    background: #ff004c;
+    color: #000;
+}
+
+.btn.primary {
+    border-color: #00ff9d;
+    color: #00ff9d;
+}
+
+.btn.primary:hover {
+    background: #00ff9d;
+    color: #000;
+}
+
+/* GRID DASHBOARD */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.card {
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    padding: 15px;
+    border-radius: 10px;
+    background: rgba(0, 10, 20, 0.6);
+    text-align: center;
+}
+
+/* TELEMETRY */
+#telemetry {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0, 20, 30, 0.6);
+    border-left: 3px solid #00e5ff;
+}
+
+/* LOGS */
+.logs {
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+/* HIDDEN */
+.hidden {
+    display: none;
+}
+
+/* SCENE AREA */
+.scene {
+    height: 200px;
+    border: 1px dashed rgba(0, 229, 255, 0.3);
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0, 229, 255, 0.5);
 }
