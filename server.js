@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 
 /* =========================
-   WEBSOCKET
+   WEBSOCKET SETUP
 ========================= */
 const wss = new WebSocket.Server({ server });
 
@@ -23,13 +23,8 @@ const USERS = {
   "andreatnt12@hotmail.com": "director"
 };
 
-function getRole(email) {
-  return USERS[email] || "guest";
-}
-
-function isDirector(email) {
-  return getRole(email) === "director";
-}
+const getRole = (email) => USERS[email] || "guest";
+const isDirector = (email) => getRole(email) === "director";
 
 /* =========================
    STATE
@@ -41,10 +36,12 @@ const PHASE = {
   ABORTED: "ABORTED"
 };
 
-let state = {
+const state = {
   launchEnabled: false,
   launchTime: Date.now() + 300000,
+
   phase: PHASE.IDLE,
+
   logs: [],
   telemetry: {
     altitude: 0,
@@ -56,31 +53,47 @@ let state = {
 /* =========================
    HELPERS
 ========================= */
-function now() {
-  return Date.now();
-}
+const now = () => Date.now();
 
-function countdown() {
-  return Math.max(0, state.launchTime - now());
-}
+const getCountdown = () =>
+  Math.max(0, state.launchTime - now());
 
-function log(msg) {
-  state.logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`);
+function addLog(message) {
+  state.logs.unshift(`[${new Date().toLocaleTimeString()}] ${message}`);
   if (state.logs.length > 15) state.logs.pop();
 }
 
 /* =========================
-   BROADCAST (SAFE)
+   PAYLOAD (WHAT FRONTEND SEES)
+========================= */
+function buildPayload() {
+  return {
+    launchEnabled: state.launchEnabled,
+    phase: state.phase,
+
+    // 👇 FUN TEST TEXTS (VISIBLE IN UI)
+    statusText: state.launchEnabled
+      ? "🚀 ROCKET IS PANICKING"
+      : "🛑 SYSTEM IS NAPPING",
+
+    countdown: getCountdown(),
+
+    telemetry: state.telemetry,
+    logs: state.logs,
+
+    funMessage: "🔥 ISA CONTROL IS ALIVE AND SLIGHTLY CHAOTIC"
+  };
+}
+
+/* =========================
+   BROADCAST
 ========================= */
 function broadcast() {
-  const payload = JSON.stringify({
-    ...state,
-    countdown: countdown()
-  });
+  const data = JSON.stringify(buildPayload());
 
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(payload);
+      client.send(data);
     }
   });
 }
@@ -91,14 +104,18 @@ function broadcast() {
 setInterval(() => {
   try {
     if (state.launchEnabled && state.phase !== PHASE.ABORTED) {
-      state.telemetry.altitude += Math.random() * 3;
-      state.telemetry.velocity += Math.random() * 1.5;
-      state.telemetry.fuel = Math.max(0, state.telemetry.fuel - Math.random() * 0.3);
+      state.telemetry.altitude += Math.random() * 5;
+      state.telemetry.velocity += Math.random() * 3;
+      state.telemetry.fuel -= Math.random() * 0.5;
 
-      if (state.telemetry.fuel === 0) {
+      addLog("📡 Rocket doing questionable physics...");
+
+      if (state.telemetry.fuel <= 0) {
+        state.telemetry.fuel = 0;
         state.launchEnabled = false;
         state.phase = PHASE.ABORTED;
-        log("FUEL DEPLETED - ABORTING");
+
+        addLog("⛽ Rocket ran out of snacks (fuel depleted)");
       }
     }
 
@@ -109,62 +126,93 @@ setInterval(() => {
 }, 1000);
 
 /* =========================
-   LOGIN
+   ROUTES
 ========================= */
+
+// LOGIN
 app.post("/login", (req, res) => {
-  const role = getRole(req.body.email);
-  res.json({ role });
+  const email = req.body?.email;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email required" });
+  }
+
+  res.json({
+    role: getRole(email),
+    message: "👋 Welcome to Rocket Chaos System"
+  });
 });
 
-/* =========================
-   TOGGLE LAUNCH
-========================= */
+// TOGGLE LAUNCH
 app.post("/toggle", (req, res) => {
-  if (!isDirector(req.body.email)) {
-    return res.status(403).json({ error: "Forbidden" });
+  const email = req.body?.email;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email required" });
+  }
+
+  if (!isDirector(email)) {
+    return res.status(403).json({
+      error: "🚫 You are not the rocket overlord"
+    });
   }
 
   state.launchEnabled = !state.launchEnabled;
-  state.phase = state.launchEnabled ? PHASE.COUNTDOWN : PHASE.IDLE;
 
-  log("Launch toggled: " + state.launchEnabled);
+  state.phase = state.launchEnabled
+    ? PHASE.COUNTDOWN
+    : PHASE.IDLE;
+
+  addLog(
+    state.launchEnabled
+      ? "🚀 Launch sequence activated (panic mode)"
+      : "🛑 Launch canceled (rocket is disappointed)"
+  );
 
   broadcast();
-  res.json(state);
+
+  res.json(buildPayload());
 });
 
-/* =========================
-   ABORT
-========================= */
+// ABORT
 app.post("/abort", (req, res) => {
-  if (!isDirector(req.body.email)) {
-    return res.status(403).json({ error: "Forbidden" });
+  const email = req.body?.email;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email required" });
+  }
+
+  if (!isDirector(email)) {
+    return res.status(403).json({
+      error: "🚫 Only rocket parents can abort"
+    });
   }
 
   state.launchEnabled = false;
   state.phase = PHASE.ABORTED;
 
-  log("MISSION ABORTED");
+  addLog("🧯 ABORT INITIATED — rocket is relieved");
 
   broadcast();
-  res.json(state);
+
+  res.json(buildPayload());
 });
 
 /* =========================
-   WEBSOCKET CONNECT
+   WEBSOCKET CONNECTION
 ========================= */
 wss.on("connection", (ws) => {
-  ws.send(JSON.stringify({
-    ...state,
-    countdown: countdown()
-  }));
+  ws.send(JSON.stringify(buildPayload()));
+
+  addLog("👀 A new astronaut joined the control room");
+  broadcast();
 });
 
 /* =========================
-   START SERVER (RENDER SAFE)
+   START SERVER
 ========================= */
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`ISA CONTROL RUNNING ON PORT ${PORT}`);
+  console.log(`🚀 ISA CONTROL RUNNING ON PORT ${PORT}`);
 });
